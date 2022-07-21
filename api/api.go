@@ -8,6 +8,7 @@ import (
 type ApiResponse struct {
 	Success bool `json:"success"`
 	Body interface{} `json:"body"`
+	Message string `json:"message"`
 }
 
 func (r *ApiResponse) RespondJSON(w http.ResponseWriter, status int) {

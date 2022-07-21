@@ -9,9 +9,7 @@ import (
 )
 
 func main() {
-	collection := todo.Collection{
-		Todos: make(map[string]todo.Todo),
-	}
+	collection := todo.NewCollection("./todo.db")
 
 	http.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
