@@ -24,6 +24,7 @@ type Todo struct {
   Title string `json:"title"`
   Body string `json:"body"`
   Status Status `json:"status"`
+	User_uid string `json:"user_uid"`
 }
 
 type Collection struct {
@@ -49,7 +50,7 @@ func (c *Collection) openDB() {
 }
 
 func (c *Collection) saveToDB() {
-	contents, err := json.Marshal(c.ToArray())
+	contents, err := json.Marshal(ToArray(c.Todos))
 
 	if err != nil {
 		return
@@ -66,16 +67,6 @@ func (c *Collection) saveToDB() {
 		fmt.Println("Error: Couldn't save to database!")
 		return
 	}
-}
-
-func (c *Collection) ToArray() []Todo {
-	todoArray := []Todo{}
-	
-	for _, todo := range c.Todos {
-		todoArray = append(todoArray, todo)
-	}
-
-	return todoArray
 }
 
 func (c *Collection) AddTodo(todo Todo) Todo {
@@ -108,6 +99,28 @@ func (c *Collection) ToggleTodo(uid string) Todo {
 	c.saveToDB()
 
 	return todo
+}
+
+func (c *Collection) Filter(filter func(Todo) bool) []Todo {
+	todos := []Todo{}
+
+	for _, todo := range c.Todos {
+		if filter(todo) {
+			todos = append(todos, todo)
+		}
+	}
+
+	return todos
+}
+
+func ToArray(todos map[string]Todo) []Todo {
+	todoArray := []Todo{}
+	
+	for _, todo := range todos {
+		todoArray = append(todoArray, todo)
+	}
+
+	return todoArray
 }
 
 func NewCollection(filepath string) Collection {

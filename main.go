@@ -45,9 +45,23 @@ func main() {
 			return
 		}
 
+		dbUser, err := usersDB.GetUserByHeaderToken(r)
+		if err != nil {
+			res := api.ApiResponse{
+				Success: false,
+				Message: "Invalid user!",
+			}
+			res.RespondJSON(w, 404)
+			return
+		}
+
+		filteredTodos := todos.Filter(func(t todo.Todo) bool {
+			return t.User_uid == dbUser.Uid
+		})
+
 		res := api.ApiResponse{
 			Success: true,
-			Body: todos.ToArray(),
+			Body: filteredTodos,
 		}
 		res.RespondJSON(w, 200)
 	})
@@ -62,14 +76,32 @@ func main() {
 		
 		switch r.Method {
 		case "POST":
+			dbUser, err := usersDB.GetUserByHeaderToken(r)
+			if err != nil {
+				res := api.ApiResponse{
+					Success: false,
+					Message: "Invalid user!",
+				}
+				res.RespondJSON(w, 404)
+			}
 			
 			todo := todo.Todo{}
-			err := json.NewDecoder(r.Body).Decode(&todo)
-			if err == nil {}
+			err = json.NewDecoder(r.Body).Decode(&todo)
+			if err != nil {
+				res := api.ApiResponse{
+					Success: false,
+					Message: err.Error(),
+				}
+				res.RespondJSON(w, 400)
+				return
+			}
+
+			todo.User_uid = dbUser.Uid
+			addedTodo := todos.AddTodo(todo)
 
 			res := api.ApiResponse{
 				Success: true,
-				Body: todos.AddTodo(todo),
+				Body: addedTodo,
 			}
 			res.RespondJSON(w, 200)
 
