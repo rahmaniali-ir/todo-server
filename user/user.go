@@ -127,22 +127,22 @@ func (c *Collection) SearchSingleUser(filter func(User) bool) (User, error) {
 	return users[0], nil
 }
 
-func (c *Collection) AddUser(user User) (string, User, error) {
+func (c *Collection) AddUser(user User) (User, error) {
 	uid := uuid.NewString()
 	user.Uid = uid
 
 	var userBytes bytes.Buffer
 	err := gob.NewEncoder(&userBytes).Encode(user)
 	if err != nil {
-		return "", User{}, err
+		return User{}, err
 	}
 	
 	err = c.usersDB.Put([]byte(uid), userBytes.Bytes(), nil)
 	if err != nil {
-		return "", User{}, err
+		return User{}, err
 	}
 
-	return uid, user, nil
+	return user, nil
 }
 
 func (c *Collection) SignUserIn(uid string) (string, error) {

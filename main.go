@@ -234,7 +234,18 @@ func main() {
 				Password: credentials.Password,
 			}
 
-			token, newUser, err := usersDB.AddUser(newUserData)
+			newUser, err := usersDB.AddUser(newUserData)
+			if err != nil {
+				res := api.ApiResponse{
+					Success: false,
+					Body: nil,
+					Message: err.Error(),
+				}
+				res.RespondJSON(w, 400)
+				return
+			}
+
+			token, err := usersDB.SignUserIn(newUser.Uid)
 			if err != nil {
 				res := api.ApiResponse{
 					Success: false,
