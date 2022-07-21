@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/rahmaniali-ir/todo-server/api"
@@ -19,10 +21,16 @@ func handlePreFlight(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 
-	w.Header().Add("Access-Control-Allow-Headers", "content-type")
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	w.Header().Add("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS")
 	w.WriteHeader(http.StatusOK)
 	return true
+}
+
+func getAuthHeaderToken(r *http.Request) string {
+	authHeader := r.Header.Get("Authorization")
+	headerParts := strings.Fields(authHeader)
+	return headerParts[1]
 }
 
 func main() {
@@ -40,9 +48,57 @@ func main() {
 	}
 	defer tokenDB.Close()
 
+	getUserByUid := func (uid string) (user.User, error) {
+		dbUserBytes, err := usersDB.Get([]byte(uid), nil)
+		if err != nil {
+			return user.User{}, errors.New("Invalid user uid!")
+		}
+
+		dbUser := user.User{}
+		reader := bytes.NewReader(dbUserBytes)
+		err = gob.NewDecoder(reader).Decode(&dbUser)
+		if err == nil {}
+
+		return dbUser, nil
+	}
+
+	getUserUidByToken := func (token string) (string, error) {
+		uidBytes, err := tokenDB.Get([]byte(token), nil)
+		if err != nil {
+			return "", errors.New("Invalid user uid!")
+		}
+
+		return string(uidBytes), nil
+	}
+
+	// getUserByToken := func (token string) (user.User, error) {
+	// 	uid, err := getUserUidByToken(token)
+	// 	if err != nil {
+	// 		return user.User{}, errors.New("Invalid user token!")
+	// 	}
+
+	// 	return getUserByUid(uid)
+	// }
+
+	getUserByHeaderToken := func (r *http.Request) (user.User, error) {
+		token := getAuthHeaderToken(r)
+
+		uid, err := getUserUidByToken(token)
+		if err != nil {
+			return user.User{}, errors.New("Invalid user token!")
+		}
+
+		return getUserByUid(uid)
+	}
+
 	http.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.Header().Add("Content-Type", "application/json")
+
+		preflight := handlePreFlight(w, r)
+		if preflight {
+			return
+		}
 
 		res := api.ApiResponse{
 			Success: true,
@@ -98,10 +154,13 @@ func main() {
 	http.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.Header().Add("Content-Type", "application/json")
-		
-		token := r.Header.Get("Authorization")
 
-		dbUserBytes, err := usersDB.Get([]byte(token), nil)
+		preflight := handlePreFlight(w, r)
+		if preflight {
+			return
+		}
+		
+		dbUser, err := getUserByHeaderToken(r)
 		if err != nil {
 			res := api.ApiResponse{
 				Success: false,
@@ -110,11 +169,6 @@ func main() {
 			res.RespondJSON(w, 404)
 			return
 		}
-
-		var dbUser user.User
-		reader := bytes.NewReader(dbUserBytes)
-		err = gob.NewDecoder(reader).Decode(&dbUser)
-		if err != nil {}
 
 		res := api.ApiResponse{
 			Success: true,
@@ -238,6 +292,40 @@ func main() {
 			res := api.ApiResponse{
 				Success: true,
 				Body: response,
+			}
+			res.RespondJSON(w, 200)
+		}
+	})
+
+	http.HandleFunc("/sign-out", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+
+		preflight := handlePreFlight(w, r)
+		if preflight {
+			return
+		}
+		
+		switch r.Method {
+		case "DELETE":
+			token := getAuthHeaderToken(r)
+
+			_, err := getUserByHeaderToken(r)
+			if err != nil {}
+
+			err = tokenDB.Delete([]byte(token), nil)
+			if err != nil {
+				res := api.ApiResponse{
+					Success: false,
+					Body: nil,
+					Message: "Invalid token!",
+				}
+				res.RespondJSON(w, 400)
+				return
+			}
+			
+			res := api.ApiResponse{
+				Success: true,
+				Body: nil,
 			}
 			res.RespondJSON(w, 200)
 		}
