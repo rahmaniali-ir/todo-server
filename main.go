@@ -1,19 +1,14 @@
 package main
 
 import (
-	"bytes"
-	"encoding/gob"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
-	"github.com/google/uuid"
 	"github.com/rahmaniali-ir/todo-server/api"
 	"github.com/rahmaniali-ir/todo-server/todo"
 	"github.com/rahmaniali-ir/todo-server/user"
-	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/rahmaniali-ir/todo-server/utils"
 )
 
 func handlePreFlight(w http.ResponseWriter, r *http.Request) bool {
@@ -27,49 +22,10 @@ func handlePreFlight(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
-func getAuthHeaderToken(r *http.Request) string {
-	authHeader := r.Header.Get("Authorization")
-	headerParts := strings.Fields(authHeader)
-	return headerParts[1]
-}
-
 func main() {
 	todos := todo.NewCollection("./db/todo.db")
-
-	usersDB, err := leveldb.OpenFile("./db/user", nil)
-	if err != nil {
-		panic("Could not open database!")
-	}
+	usersDB := user.NewCollection()
 	defer usersDB.Close()
-
-	tokenDB, err := leveldb.OpenFile("./db/auth-token", nil)
-	if err != nil {
-		panic("Could not open database!")
-	}
-	defer tokenDB.Close()
-
-	getUserByUid := func (uid string) (user.User, error) {
-		dbUserBytes, err := usersDB.Get([]byte(uid), nil)
-		if err != nil {
-			return user.User{}, errors.New("Invalid user uid!")
-		}
-
-		dbUser := user.User{}
-		reader := bytes.NewReader(dbUserBytes)
-		err = gob.NewDecoder(reader).Decode(&dbUser)
-		if err == nil {}
-
-		return dbUser, nil
-	}
-
-	getUserUidByToken := func (token string) (string, error) {
-		uidBytes, err := tokenDB.Get([]byte(token), nil)
-		if err != nil {
-			return "", errors.New("Invalid user uid!")
-		}
-
-		return string(uidBytes), nil
-	}
 
 	// getUserByToken := func (token string) (user.User, error) {
 	// 	uid, err := getUserUidByToken(token)
@@ -79,17 +35,6 @@ func main() {
 
 	// 	return getUserByUid(uid)
 	// }
-
-	getUserByHeaderToken := func (r *http.Request) (user.User, error) {
-		token := getAuthHeaderToken(r)
-
-		uid, err := getUserUidByToken(token)
-		if err != nil {
-			return user.User{}, errors.New("Invalid user token!")
-		}
-
-		return getUserByUid(uid)
-	}
 
 	http.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
@@ -160,7 +105,7 @@ func main() {
 			return
 		}
 		
-		dbUser, err := getUserByHeaderToken(r)
+		dbUser, err := usersDB.GetUserByHeaderToken(r)
 		if err != nil {
 			res := api.ApiResponse{
 				Success: false,
@@ -195,45 +140,35 @@ func main() {
 			err := json.NewDecoder(r.Body).Decode(&credentials)
 			if err == nil {}
 
-			fmt.Println(credentials)
+			foundUser, err := usersDB.SearchSingleUser(func (dbUser user.User) bool {
+				return dbUser.Email == credentials.Email && dbUser.Password == credentials.Password
+			})
 
-			iter := usersDB.NewIterator(nil, nil)
-			for iter.Next() {
-				fmt.Println(string(iter.Key()))
+			fmt.Println("Found", foundUser)
 
-				var dbUser user.User
-				reader := bytes.NewReader(iter.Value())
-				err = gob.NewDecoder(reader).Decode(&dbUser)
-				if err != nil {}
-
-				// valid user
-				if dbUser.Email == credentials.Email && dbUser.Password == credentials.Password {
-					// generate token
-					token := uuid.NewString()
-					err = tokenDB.Put([]byte(token), []byte(dbUser.Uid), nil)
-					if err != nil {}
-
-					// response
-					var response struct{
-						Token string `json:"token"`
-						User user.User `json:"user"`
-					}
-					response.Token = token
-					response.User = dbUser
-					
-					res := api.ApiResponse{
-						Success: true,
-						Body: response,
-					}
-					res.RespondJSON(w, 200)
-					return
-				}
-			}
-			
 			// invalid user
+			if err != nil {
+				res := api.ApiResponse{
+					Success: false,
+					Body: nil,
+				}
+				res.RespondJSON(w, 404)
+				return
+			}
+
+			token, err := usersDB.SignUserIn(foundUser.Uid)
+			if err != nil {}
+
+			var response struct{
+				Token string `json:"token"`
+				User user.User `json:"user"`
+			}
+			response.Token = token
+			response.User = foundUser
+			
 			res := api.ApiResponse{
-				Success: false,
-				Body: nil,
+				Success: true,
+				Body: response,
 			}
 			res.RespondJSON(w, 200)
 		}
@@ -261,25 +196,22 @@ func main() {
 			fmt.Println("Sign-up", credentials)
 
 			// create user
-			uid := uuid.NewString()
-			newUser := user.User{
-				Uid: uid,
+			newUserData := user.User{
 				Name: credentials.Name,
 				Email: credentials.Email,
 				Password: credentials.Password,
 			}
 
-			var userBytes bytes.Buffer
-			err = gob.NewEncoder(&userBytes).Encode(newUser)
-			if err != nil {}
-			
-			err = usersDB.Put([]byte(uid), userBytes.Bytes(), nil)
-			if err != nil {}
-
-			// generate token
-			token := uuid.NewString()
-			err = tokenDB.Put([]byte(token), []byte(uid), nil)
-			if err != nil {}
+			token, newUser, err := usersDB.AddUser(newUserData)
+			if err != nil {
+				res := api.ApiResponse{
+					Success: false,
+					Body: nil,
+					Message: err.Error(),
+				}
+				res.RespondJSON(w, 400)
+				return
+			}
 
 			// response
 			var response struct{
@@ -307,12 +239,12 @@ func main() {
 		
 		switch r.Method {
 		case "DELETE":
-			token := getAuthHeaderToken(r)
+			token := utils.GetAuthHeaderToken(r)
 
-			_, err := getUserByHeaderToken(r)
+			_, err := usersDB.GetUserByHeaderToken(r)
 			if err != nil {}
 
-			err = tokenDB.Delete([]byte(token), nil)
+			err = usersDB.SignUserOut(token)
 			if err != nil {
 				res := api.ApiResponse{
 					Success: false,
