@@ -1,31 +1,28 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-
-	"github.com/rahmaniali-ir/todo-server/api"
-	"github.com/rahmaniali-ir/todo-server/todo"
-	"github.com/rahmaniali-ir/todo-server/user"
-	"github.com/rahmaniali-ir/todo-server/utils"
+	"github.com/rahmaniali-ir/todo-server/app"
+	// todoController "github.com/rahmaniali-ir/todo-server/controllers/todo"
+	// "github.com/rahmaniali-ir/todo-server/todo"
+	// "github.com/rahmaniali-ir/todo-server/user"
 )
 
-func handlePreFlight(w http.ResponseWriter, r *http.Request) bool {
-	if(r.Method != "OPTIONS") {
-		return false
+func main() {
+	// todos := todo.NewCollection("./db/todo.db")
+	// usersDB := user.NewCollection()
+	// defer usersDB.Close()
+
+	// todoHandler := todoController.New(&todos, &usersDB)
+
+	appServer, err := app.New()
+	if err != nil {
+		panic(err)
 	}
 
-	w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Authorization")
-	w.Header().Add("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS")
-	w.WriteHeader(http.StatusOK)
-	return true
-}
-
-func main() {
-	todos := todo.NewCollection("./db/todo.db")
-	usersDB := user.NewCollection()
-	defer usersDB.Close()
+	err = appServer.ListenAndServe()
+	if err != nil {
+		panic(err)
+	}
 
 	// getUserByToken := func (token string) (user.User, error) {
 	// 	uid, err := getUserUidByToken(token)
@@ -35,276 +32,186 @@ func main() {
 
 	// 	return getUserByUid(uid)
 	// }
+	// http.HandleFunc("/todo", todoHandler.HandleTodo)
+	// http.HandleFunc("/todos", todoHandler.HandleTodos)
+	
+	// http.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Header().Add("Access-Control-Allow-Origin", "*")
+	// 	w.Header().Add("Content-Type", "application/json")
 
-	http.HandleFunc("/todos", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-		w.Header().Add("Content-Type", "application/json")
-
-		preflight := handlePreFlight(w, r)
-		if preflight {
-			return
-		}
-
-		dbUser, err := usersDB.GetUserByHeaderToken(r)
-		if err != nil {
-			res := api.ApiResponse{
-				Success: false,
-				Message: "Invalid user!",
-			}
-			res.RespondJSON(w, 404)
-			return
-		}
-
-		filteredTodos := todos.Filter(func(t todo.Todo) bool {
-			return t.User_uid == dbUser.Uid
-		})
-
-		res := api.ApiResponse{
-			Success: true,
-			Body: filteredTodos,
-		}
-		res.RespondJSON(w, 200)
-	})
-
-	http.HandleFunc("/todo", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-
-		preflight := handlePreFlight(w, r)
-		if preflight {
-			return
-		}
+	// 	preflight := utils.HandlePreFlight(w, r)
+	// 	if preflight {
+	// 		return
+	// 	}
 		
-		switch r.Method {
-		case "POST":
-			dbUser, err := usersDB.GetUserByHeaderToken(r)
-			if err != nil {
-				res := api.ApiResponse{
-					Success: false,
-					Message: "Invalid user!",
-				}
-				res.RespondJSON(w, 404)
-			}
+	// 	dbUser, err := usersDB.GetUserByHeaderToken(r)
+	// 	if err != nil {
+	// 		res := api.ApiResponse{
+	// 			Success: false,
+	// 			Body: nil,
+	// 		}
+	// 		res.RespondJSON(w, 404)
+	// 		return
+	// 	}
+
+	// 	res := api.ApiResponse{
+	// 		Success: true,
+	// 		Body: dbUser,
+	// 	}
+	// 	res.RespondJSON(w, 200)
+	// })
+
+	// http.HandleFunc("/sign-in", func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Header().Add("Access-Control-Allow-Origin", "*")
+
+	// 	preflight := utils.HandlePreFlight(w, r)
+	// 	if preflight {
+	// 		return
+	// 	}
+		
+	// 	switch r.Method {
+	// 	case "POST":
+	// 		var credentials struct{
+	// 			Email string `json:"email"`
+	// 			Password string `json:"password"`
+	// 		}
+
+	// 		err := json.NewDecoder(r.Body).Decode(&credentials)
+	// 		if err == nil {}
+
+	// 		foundUser, err := usersDB.SearchSingleUser(func (dbUser user.User) bool {
+	// 			return dbUser.Email == credentials.Email && dbUser.Password == credentials.Password
+	// 		})
+
+	// 		fmt.Println("Found", foundUser)
+
+	// 		// invalid user
+	// 		if err != nil {
+	// 			res := api.ApiResponse{
+	// 				Success: false,
+	// 				Body: nil,
+	// 			}
+	// 			res.RespondJSON(w, 404)
+	// 			return
+	// 		}
+
+	// 		token, err := usersDB.SignUserIn(foundUser.Uid)
+	// 		if err != nil {}
+
+	// 		var response struct{
+	// 			Token string `json:"token"`
+	// 			User user.User `json:"user"`
+	// 		}
+	// 		response.Token = token
+	// 		response.User = foundUser
 			
-			todo := todo.Todo{}
-			err = json.NewDecoder(r.Body).Decode(&todo)
-			if err != nil {
-				res := api.ApiResponse{
-					Success: false,
-					Message: err.Error(),
-				}
-				res.RespondJSON(w, 400)
-				return
-			}
+	// 		res := api.ApiResponse{
+	// 			Success: true,
+	// 			Body: response,
+	// 		}
+	// 		res.RespondJSON(w, 200)
+	// 	}
+	// })
 
-			todo.User_uid = dbUser.Uid
-			addedTodo := todos.AddTodo(todo)
+	// http.HandleFunc("/sign-up", func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Header().Add("Access-Control-Allow-Origin", "*")
 
-			res := api.ApiResponse{
-				Success: true,
-				Body: addedTodo,
-			}
-			res.RespondJSON(w, 200)
-
-		case "DELETE":
-			uid := r.URL.Query()["uid"][0]
-
-			todos.DeleteTodo(uid)
-
-			res := api.ApiResponse{
-				Success: true,
-			}
-			res.RespondJSON(w, 200)
-
-		case "PUT":
-			uid := r.URL.Query()["uid"][0]
-
-			todo := todos.ToggleTodo(uid)
-
-			res := api.ApiResponse{
-				Success: true,
-				Body: todo,
-			}
-			res.RespondJSON(w, 200)
-		}
-	})
-
-	http.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-		w.Header().Add("Content-Type", "application/json")
-
-		preflight := handlePreFlight(w, r)
-		if preflight {
-			return
-		}
+	// 	preflight := utils.HandlePreFlight(w, r)
+	// 	if preflight {
+	// 		return
+	// 	}
 		
-		dbUser, err := usersDB.GetUserByHeaderToken(r)
-		if err != nil {
-			res := api.ApiResponse{
-				Success: false,
-				Body: nil,
-			}
-			res.RespondJSON(w, 404)
-			return
-		}
+	// 	switch r.Method {
+	// 	case "POST":
+	// 		var credentials struct{
+	// 			Name string `json:"name"`
+	// 			Email string `json:"email"`
+	// 			Password string `json:"password"`
+	// 		}
 
-		res := api.ApiResponse{
-			Success: true,
-			Body: dbUser,
-		}
-		res.RespondJSON(w, 200)
-	})
+	// 		err := json.NewDecoder(r.Body).Decode(&credentials)
+	// 		if err == nil {}
 
-	http.HandleFunc("/sign-in", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Access-Control-Allow-Origin", "*")
+	// 		fmt.Println("Sign-up", credentials)
 
-		preflight := handlePreFlight(w, r)
-		if preflight {
-			return
-		}
-		
-		switch r.Method {
-		case "POST":
-			var credentials struct{
-				Email string `json:"email"`
-				Password string `json:"password"`
-			}
+	// 		// create user
+	// 		newUserData := user.User{
+	// 			Name: credentials.Name,
+	// 			Email: credentials.Email,
+	// 			Password: credentials.Password,
+	// 		}
 
-			err := json.NewDecoder(r.Body).Decode(&credentials)
-			if err == nil {}
+	// 		newUser, err := usersDB.AddUser(newUserData)
+	// 		if err != nil {
+	// 			res := api.ApiResponse{
+	// 				Success: false,
+	// 				Body: nil,
+	// 				Message: err.Error(),
+	// 			}
+	// 			res.RespondJSON(w, 400)
+	// 			return
+	// 		}
 
-			foundUser, err := usersDB.SearchSingleUser(func (dbUser user.User) bool {
-				return dbUser.Email == credentials.Email && dbUser.Password == credentials.Password
-			})
+	// 		token, err := usersDB.SignUserIn(newUser.Uid)
+	// 		if err != nil {
+	// 			res := api.ApiResponse{
+	// 				Success: false,
+	// 				Body: nil,
+	// 				Message: err.Error(),
+	// 			}
+	// 			res.RespondJSON(w, 400)
+	// 			return
+	// 		}
 
-			fmt.Println("Found", foundUser)
-
-			// invalid user
-			if err != nil {
-				res := api.ApiResponse{
-					Success: false,
-					Body: nil,
-				}
-				res.RespondJSON(w, 404)
-				return
-			}
-
-			token, err := usersDB.SignUserIn(foundUser.Uid)
-			if err != nil {}
-
-			var response struct{
-				Token string `json:"token"`
-				User user.User `json:"user"`
-			}
-			response.Token = token
-			response.User = foundUser
+	// 		// response
+	// 		var response struct{
+	// 			Token string `json:"token"`
+	// 			User user.User `json:"user"`
+	// 		}
+	// 		response.Token = token
+	// 		response.User = newUser
 			
-			res := api.ApiResponse{
-				Success: true,
-				Body: response,
-			}
-			res.RespondJSON(w, 200)
-		}
-	})
+	// 		res := api.ApiResponse{
+	// 			Success: true,
+	// 			Body: response,
+	// 		}
+	// 		res.RespondJSON(w, 200)
+	// 	}
+	// })
 
-	http.HandleFunc("/sign-up", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Access-Control-Allow-Origin", "*")
+	// http.HandleFunc("/sign-out", func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Header().Add("Access-Control-Allow-Origin", "*")
 
-		preflight := handlePreFlight(w, r)
-		if preflight {
-			return
-		}
+	// 	preflight := utils.HandlePreFlight(w, r)
+	// 	if preflight {
+	// 		return
+	// 	}
 		
-		switch r.Method {
-		case "POST":
-			var credentials struct{
-				Name string `json:"name"`
-				Email string `json:"email"`
-				Password string `json:"password"`
-			}
+	// 	switch r.Method {
+	// 	case "DELETE":
+	// 		token := utils.GetAuthHeaderToken(r)
 
-			err := json.NewDecoder(r.Body).Decode(&credentials)
-			if err == nil {}
+	// 		_, err := usersDB.GetUserByHeaderToken(r)
+	// 		if err != nil {}
 
-			fmt.Println("Sign-up", credentials)
-
-			// create user
-			newUserData := user.User{
-				Name: credentials.Name,
-				Email: credentials.Email,
-				Password: credentials.Password,
-			}
-
-			newUser, err := usersDB.AddUser(newUserData)
-			if err != nil {
-				res := api.ApiResponse{
-					Success: false,
-					Body: nil,
-					Message: err.Error(),
-				}
-				res.RespondJSON(w, 400)
-				return
-			}
-
-			token, err := usersDB.SignUserIn(newUser.Uid)
-			if err != nil {
-				res := api.ApiResponse{
-					Success: false,
-					Body: nil,
-					Message: err.Error(),
-				}
-				res.RespondJSON(w, 400)
-				return
-			}
-
-			// response
-			var response struct{
-				Token string `json:"token"`
-				User user.User `json:"user"`
-			}
-			response.Token = token
-			response.User = newUser
+	// 		err = usersDB.SignUserOut(token)
+	// 		if err != nil {
+	// 			res := api.ApiResponse{
+	// 				Success: false,
+	// 				Body: nil,
+	// 				Message: "Invalid token!",
+	// 			}
+	// 			res.RespondJSON(w, 400)
+	// 			return
+	// 		}
 			
-			res := api.ApiResponse{
-				Success: true,
-				Body: response,
-			}
-			res.RespondJSON(w, 200)
-		}
-	})
+	// 		res := api.ApiResponse{
+	// 			Success: true,
+	// 			Body: nil,
+	// 		}
+	// 		res.RespondJSON(w, 200)
+	// 	}
+	// })
 
-	http.HandleFunc("/sign-out", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-
-		preflight := handlePreFlight(w, r)
-		if preflight {
-			return
-		}
-		
-		switch r.Method {
-		case "DELETE":
-			token := utils.GetAuthHeaderToken(r)
-
-			_, err := usersDB.GetUserByHeaderToken(r)
-			if err != nil {}
-
-			err = usersDB.SignUserOut(token)
-			if err != nil {
-				res := api.ApiResponse{
-					Success: false,
-					Body: nil,
-					Message: "Invalid token!",
-				}
-				res.RespondJSON(w, 400)
-				return
-			}
-			
-			res := api.ApiResponse{
-				Success: true,
-				Body: nil,
-			}
-			res.RespondJSON(w, 200)
-		}
-	})
-
-	http.ListenAndServe(":8081", nil)
+	// http.ListenAndServe(":8081", nil)
 }
