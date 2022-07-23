@@ -1,9 +1,9 @@
 package todo
 
 import (
-	"net/http"
+	internalHttp "github.com/rahmaniali-ir/todo-server/internal/http"
 )
 
 type IHandler interface {
-	ListAll(*http.Request) (interface{}, error)
+	ListAll(*internalHttp.GenericRequest) (interface{}, error)
 }

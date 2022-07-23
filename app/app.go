@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	handler "github.com/rahmaniali-ir/todo-server/handlers/todo"
 	model "github.com/rahmaniali-ir/todo-server/models/todo"
+	"github.com/rahmaniali-ir/todo-server/pkg/session"
 	"github.com/rahmaniali-ir/todo-server/router"
 	"github.com/rahmaniali-ir/todo-server/routes"
 	service "github.com/rahmaniali-ir/todo-server/services/todo"
@@ -34,6 +35,9 @@ func New() (*http.Server, error) {
 	todoModel, err := model.NewModel(db)
 	todoService := service.NewService(todoModel)
 	allRoutes = append(allRoutes, routes.TodoRoutes(handler.NewHandler(&todoService))...)
+
+	// session manager
+	session.Init(db)
 
 	newApp := app{}
 	err = newApp.createResources(allRoutes...)

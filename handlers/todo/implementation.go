@@ -1,8 +1,7 @@
 package todo
 
 import (
-	"net/http"
-
+	internalHttp "github.com/rahmaniali-ir/todo-server/internal/http"
 	service "github.com/rahmaniali-ir/todo-server/services/todo"
 )
 
@@ -20,6 +19,6 @@ func NewHandler(service service.ITodo) IHandler {
 	return h
 }
 
-func (h *handler) ListAll(req *http.Request) (interface{}, error) {
+func (h *handler) ListAll(req *internalHttp.GenericRequest) (interface{}, error) {
 	return h.service.GetAll()
 }

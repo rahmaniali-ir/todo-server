@@ -2,7 +2,7 @@ package http
 
 import "net/http"
 
-type handlerFunc func(handler *http.Request) (interface{}, error)
+type handlerFunc func(handler *GenericRequest) (interface{}, error)
 
 func Handle(handler handlerFunc) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -16,12 +16,20 @@ func Handle(handler handlerFunc) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		body, err := handler(r)
+		res := GenericResponse{}
+
+		gr, err := NewGenericResponseFromHTTPRequest(r)
+		if err != nil {
+			res.RespondJSON(w, 400)
+			return
+		}
+
+		body, err := handler(gr)
 		if err != nil {
 			return
 		}
 
-		res := ApiResponse{
+		res = GenericResponse{
 			Success: true,
 			Body: body,
 		}
