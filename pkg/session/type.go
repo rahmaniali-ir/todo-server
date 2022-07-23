@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 
+	"github.com/google/uuid"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -40,4 +41,15 @@ func (s *session) GetByToken(token string) (*TempUserSession, error) {
 	}
 
 	return &TempUserSession{}, nil
+}
+
+func (s *session) SetSession(uid string) (string, error) {
+	token := uuid.NewString()
+	err := s.db.Put([]byte("token#" + token), []byte(uid), nil)
+
+	if err != nil {
+		return "", nil
+	}
+
+	return token, nil
 }

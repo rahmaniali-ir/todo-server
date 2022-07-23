@@ -5,12 +5,15 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	handler "github.com/rahmaniali-ir/todo-server/handlers/todo"
-	model "github.com/rahmaniali-ir/todo-server/models/todo"
+	todoHandler "github.com/rahmaniali-ir/todo-server/handlers/todo"
+	userHandler "github.com/rahmaniali-ir/todo-server/handlers/user"
+	todoModel "github.com/rahmaniali-ir/todo-server/models/todo"
+	userModel "github.com/rahmaniali-ir/todo-server/models/user"
 	"github.com/rahmaniali-ir/todo-server/pkg/session"
 	"github.com/rahmaniali-ir/todo-server/router"
 	"github.com/rahmaniali-ir/todo-server/routes"
-	service "github.com/rahmaniali-ir/todo-server/services/todo"
+	todoService "github.com/rahmaniali-ir/todo-server/services/todo"
+	userService "github.com/rahmaniali-ir/todo-server/services/user"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -31,10 +34,15 @@ func New() (*http.Server, error) {
 		panic("Could not open database!")
 	}
 
+	// user routes
+	um := userModel.NewModel(db)
+	us := userService.NewService(um)
+	allRoutes = append(allRoutes, routes.UserRoutes(userHandler.NewHandler(us))...)
+
 	// todo routes
-	todoModel, err := model.NewModel(db)
-	todoService := service.NewService(todoModel)
-	allRoutes = append(allRoutes, routes.TodoRoutes(handler.NewHandler(&todoService))...)
+	tm, err := todoModel.NewModel(db)
+	ts := todoService.NewService(tm)
+	allRoutes = append(allRoutes, routes.TodoRoutes(todoHandler.NewHandler(&ts))...)
 
 	// session manager
 	session.Init(db)

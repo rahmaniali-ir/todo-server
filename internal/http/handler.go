@@ -1,6 +1,8 @@
 package http
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type handlerFunc func(handler *GenericRequest) (interface{}, error)
 
@@ -20,12 +22,22 @@ func Handle(handler handlerFunc) func(http.ResponseWriter, *http.Request) {
 
 		gr, err := NewGenericResponseFromHTTPRequest(r)
 		if err != nil {
-			res.RespondJSON(w, 400)
+			res = GenericResponse{
+				Success: false,
+				Body: err.Error(),
+			}
+			res.RespondJSON(w, http.StatusBadRequest)
 			return
 		}
 
 		body, err := handler(gr)
 		if err != nil {
+			res = GenericResponse{
+				Success: false,
+				Body: err.Error(),
+			}
+			res.RespondJSON(w, http.StatusBadRequest)
+
 			return
 		}
 

@@ -7,7 +7,8 @@ type TempUserSession struct {
 }
 
 type ISession interface {
-	GetByToken(string) (*TempUserSession, error)
+	GetByToken(token string) (*TempUserSession, error)
+	SetSession(uid string) (token string, err error)
 }
 
 var Default ISession

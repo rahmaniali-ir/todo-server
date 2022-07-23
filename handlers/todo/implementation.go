@@ -19,6 +19,6 @@ func NewHandler(service service.ITodo) IHandler {
 	return h
 }
 
-func (h *handler) ListAll(req *internalHttp.GenericRequest) (interface{}, error) {
+func (h *handler) Get(req *internalHttp.GenericRequest) (interface{}, error) {
 	return h.service.GetAll()
 }

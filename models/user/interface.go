@@ -1,7 +1,12 @@
 package user
 
 type User struct {
-	uid string
-	name string
-	email string
+	Uid string
+	Name string
+	Email string
+	Password string
+}
+
+type IUser interface {
+	Add(user *User) error
 }
