@@ -22,5 +22,11 @@ func TodoRoutes(todoHandler todo.IHandler) []router.Route {
 			Method: http.MethodPost,
 			Handler: internalHttp.Handle(todoHandler.Add),
 		},
+		{
+			Name: "deleteTodo",
+			Path: "/todo",
+			Method: http.MethodDelete,
+			Handler: internalHttp.Handle(todoHandler.Delete),
+		},
 	}
 }

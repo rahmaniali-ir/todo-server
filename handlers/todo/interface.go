@@ -7,4 +7,5 @@ import (
 type IHandler interface {
 	GetAll(*internalHttp.GenericRequest) (interface{}, error)
 	Add(*internalHttp.GenericRequest) (interface{}, error)
+	Delete(*internalHttp.GenericRequest) (interface{}, error)
 }

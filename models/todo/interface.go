@@ -19,4 +19,5 @@ type ITodo interface {
 	GetAll() ([]Todo, error)
 	GetUserTodos(userUid string) ([]Todo, error)
 	AddTodo(todo *Todo) error
+	DeleteTodo(uid string) error
 }

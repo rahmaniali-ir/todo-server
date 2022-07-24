@@ -37,3 +37,7 @@ func (h *handler) Add(req *internalHttp.GenericRequest) (interface{}, error) {
 
 	return h.service.AddTodo(todo.Title, todo.Body, todo.Status, req.Session.Uid)
 }
+
+func (h *handler) Delete(req *internalHttp.GenericRequest) (interface{}, error) {
+	return nil, h.service.DeleteTodo(req.QueryParams["uid"][0])
+}

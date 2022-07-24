@@ -41,3 +41,7 @@ func (t *iTodo) AddTodo(title string, body string, status model.Status, userUid 
 
 	return &todo, nil
 }
+
+func (t *iTodo) DeleteTodo(uid string) error {
+	return t.model.DeleteTodo(uid)
+}

@@ -68,3 +68,7 @@ func (t *iTodo) AddTodo(todo *Todo) error {
 
 	return t.db.Put([]byte("todo#" + todo.Uid), todoBytes.Bytes(), nil)
 }
+
+func (t *iTodo) DeleteTodo(uid string) error {
+	return t.db.Delete([]byte("todo#" + uid), nil)
+}
