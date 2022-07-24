@@ -1,17 +1,17 @@
-package api
+package http
 
 import (
 	"encoding/json"
 	"net/http"
 )
 
-type ApiResponse struct {
+type GenericResponse struct {
 	Success bool `json:"success"`
 	Body interface{} `json:"body"`
 	Message string `json:"message"`
 }
 
-func (r *ApiResponse) RespondJSON(w http.ResponseWriter, status int) {
+func (r *GenericResponse) RespondJSON(w http.ResponseWriter, status int) {
 	w.Header().Add("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(status)
 
