@@ -5,5 +5,5 @@ import (
 )
 
 type ITodo interface {
-	GetAll() ([]model.Todo, error)
+	GetUserTodos(userUid string) ([]model.Todo, error)
 }

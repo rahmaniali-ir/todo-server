@@ -35,6 +35,8 @@ func (h *handler) Post(r *http.GenericRequest) (interface{}, error) {
 		return nil, err
 	}
 
+	addedUser.Password = ""
+
 	token, err := session.Default.SetSession(addedUser.Uid)
 	if err != nil {
 		return nil, err

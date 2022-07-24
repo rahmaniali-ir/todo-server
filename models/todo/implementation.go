@@ -38,3 +38,23 @@ func (t *iTodo) GetAll() ([]Todo, error) {
 
 	return todos, nil
 }
+
+func (t *iTodo) GetUserTodos(userUid string) ([]Todo, error) {
+	iter := t.db.NewIterator(util.BytesPrefix([]byte("todo#")), nil)
+
+	todos := []Todo{}
+	for iter.Next() {
+		todo := Todo{}
+		reader := bytes.NewReader(iter.Value())
+		err := gob.NewDecoder(reader).Decode(&todo)
+		if err != nil {
+			return []Todo{}, err
+		}
+
+		if todo.User_uid == userUid {
+			todos = append(todos, todo)
+		}
+	}
+
+	return todos, nil
+}

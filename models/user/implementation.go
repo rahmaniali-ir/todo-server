@@ -26,5 +26,5 @@ func (u *iUser) Add(user *User) error {
 		return err
 	}
 	
-	return u.db.Put([]byte(user.Uid), userBytes.Bytes(), nil)
+	return u.db.Put([]byte("user#" + user.Uid), userBytes.Bytes(), nil)
 }

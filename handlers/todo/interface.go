@@ -5,5 +5,5 @@ import (
 )
 
 type IHandler interface {
-	Get(*internalHttp.GenericRequest) (interface{}, error)
+	GetAll(*internalHttp.GenericRequest) (interface{}, error)
 }

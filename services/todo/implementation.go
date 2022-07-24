@@ -19,6 +19,6 @@ func NewService(todoModel service.ITodo) iTodo {
 	return t
 }
 
-func (t *iTodo) GetAll() ([]model.Todo, error) {
-	return t.model.GetAll()
+func (t *iTodo) GetUserTodos(userUid string) ([]model.Todo, error) {
+	return t.model.GetUserTodos(userUid)
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 
 	"github.com/google/uuid"
+	"github.com/rahmaniali-ir/todo-server/models/user"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -26,21 +27,31 @@ func Init(db *leveldb.DB) {
 }
 
 func (s *session) GetByToken(token string) (*TempUserSession, error) {
-	sessionBytes, err := s.db.Get([]byte("token#" + token), nil)
-
+	uidBytes, err := s.db.Get([]byte("token#" + token), nil)
 	if err != nil {
-		return &TempUserSession{}, err
+		return nil, err
 	}
 
-	tempUserSession := TempUserSession{}
-	reader := bytes.NewReader(sessionBytes)
-	err = gob.NewDecoder(reader).Decode(&tempUserSession)
-
+	uid := string(uidBytes)
+	userBytes, err := s.db.Get([]byte("user#" + uid), nil)
 	if err != nil {
-		return &TempUserSession{}, err
+		return nil, err
 	}
 
-	return &TempUserSession{}, nil
+	dbUser := &user.User{}
+	reader := bytes.NewReader(userBytes)
+	err = gob.NewDecoder(reader).Decode(dbUser)
+	if err != nil {
+		return nil, err
+	}
+
+	tempUserSession := &TempUserSession{
+		Uid: dbUser.Uid,
+		Name: dbUser.Name,
+		Email: dbUser.Email,
+	}
+
+	return tempUserSession, nil
 }
 
 func (s *session) SetSession(uid string) (string, error) {

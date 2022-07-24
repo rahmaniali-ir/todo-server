@@ -1,9 +1,9 @@
 package session
 
 type TempUserSession struct {
-	uid string
-	name string
-	email string
+	Uid string
+	Name string
+	Email string
 }
 
 type ISession interface {
