@@ -22,5 +22,11 @@ func UserRoutes(userHandler user.IHandler) []router.Route {
 			Method: http.MethodPost,
 			Handler: internalHttp.Handle(userHandler.SignUp),
 		},
+		{
+			Name: "signIn",
+			Path: "/sign-in",
+			Method: http.MethodPost,
+			Handler: internalHttp.Handle(userHandler.SignIn),
+		},
 	}
 }

@@ -39,19 +39,41 @@ func (h *handler) SignUp(req *http.GenericRequest) (interface{}, error) {
 		return nil, err
 	}
 
-	addedUser.Password = ""
-
 	token, err := session.Default.SetSession(addedUser.Uid)
 	if err != nil {
 		return nil, err
 	}
 
-	var credentials struct{
-		Token string `json:"token"`
-		User userModel.User `json:"user"`
+	userWithToken := userModel.UserWithToken{
+		User: *addedUser,
+		Token: token,
 	}
-	credentials.User = *addedUser
-	credentials.Token = token
 
-	return credentials, nil
+	return userWithToken, nil
+}
+
+func (h *handler) SignIn(req *http.GenericRequest) (interface{}, error) {
+	credentials := userModel.Credentials{}
+	reader := bytes.NewReader(req.Body)
+	err := json.NewDecoder(reader).Decode(&credentials)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := h.service.GetByCredentials(credentials.Email, credentials.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := session.Default.SetSession(user.Uid)
+	if err != nil {
+		return nil, err
+	}
+
+	userWithToken := userModel.UserWithToken{
+		User: *user,
+		Token: token,
+	}
+
+	return userWithToken, nil
 }

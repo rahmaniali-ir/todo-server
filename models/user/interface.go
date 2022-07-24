@@ -13,7 +13,18 @@ type PublicUser struct {
 	Email string `json:"email"`
 }
 
+type UserWithToken struct{
+	Token string `json:"token"`
+	User PublicUser `json:"user"`
+}
+
+type Credentials struct{
+	Email string `json:"email"`
+	Password string `json:"password"`
+}
+
 type IUser interface {
 	Get(uid string) (*User, error)
+	GetByCredentials(email string, password string) (*User, error)
 	Add(user *User) error
 }

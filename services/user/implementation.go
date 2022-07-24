@@ -23,7 +23,7 @@ func (u *iUser) Get(uid string) (*userModel.PublicUser, error) {
 	return userModel.GetPublicUser(user), err
 }
 
-func (u *iUser) Add(name string, email string, password string) (*userModel.User, error) {
+func (u *iUser) Add(name string, email string, password string) (*userModel.PublicUser, error) {
 	uid := uuid.NewString()
 	newUser := &userModel.User{
 		Uid: uid,
@@ -37,5 +37,14 @@ func (u *iUser) Add(name string, email string, password string) (*userModel.User
 		return nil, err
 	}
 
-	return newUser, nil
+	return userModel.GetPublicUser(newUser), nil
+}
+
+func (u *iUser) GetByCredentials(email string, password string) (*userModel.PublicUser, error) {
+	user, err := u.model.GetByCredentials(email, password)
+	if err != nil {
+		return nil, err
+	}
+
+	return userModel.GetPublicUser(user), nil
 }
