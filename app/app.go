@@ -5,15 +5,15 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	todoHandler "github.com/rahmaniali-ir/todo-server/handlers/todo"
-	userHandler "github.com/rahmaniali-ir/todo-server/handlers/user"
-	todoModel "github.com/rahmaniali-ir/todo-server/models/todo"
-	userModel "github.com/rahmaniali-ir/todo-server/models/user"
+	todoHandler "github.com/rahmaniali-ir/todo-server/internal/handlers/todo"
+	userHandler "github.com/rahmaniali-ir/todo-server/internal/handlers/user"
+	todoModel "github.com/rahmaniali-ir/todo-server/internal/models/todo"
+	userModel "github.com/rahmaniali-ir/todo-server/internal/models/user"
+	"github.com/rahmaniali-ir/todo-server/internal/router"
+	"github.com/rahmaniali-ir/todo-server/internal/routes"
+	todoService "github.com/rahmaniali-ir/todo-server/internal/services/todo"
+	userService "github.com/rahmaniali-ir/todo-server/internal/services/user"
 	"github.com/rahmaniali-ir/todo-server/pkg/session"
-	"github.com/rahmaniali-ir/todo-server/router"
-	"github.com/rahmaniali-ir/todo-server/routes"
-	todoService "github.com/rahmaniali-ir/todo-server/services/todo"
-	userService "github.com/rahmaniali-ir/todo-server/services/user"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 

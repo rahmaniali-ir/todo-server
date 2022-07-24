@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/rahmaniali-ir/todo-server/internal/http"
-	userModel "github.com/rahmaniali-ir/todo-server/models/user"
+	userModel "github.com/rahmaniali-ir/todo-server/internal/models/user"
+	userService "github.com/rahmaniali-ir/todo-server/internal/services/user"
 	"github.com/rahmaniali-ir/todo-server/pkg/session"
-	userService "github.com/rahmaniali-ir/todo-server/services/user"
 )
 
 type handler struct {

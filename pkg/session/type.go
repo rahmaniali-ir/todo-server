@@ -5,7 +5,7 @@ import (
 	"encoding/gob"
 
 	"github.com/google/uuid"
-	"github.com/rahmaniali-ir/todo-server/models/user"
+	"github.com/rahmaniali-ir/todo-server/internal/models/user"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 

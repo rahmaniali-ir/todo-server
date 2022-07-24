@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/rahmaniali-ir/todo-server/models/user"
+	"github.com/rahmaniali-ir/todo-server/internal/models/user"
 )
 
 type IUser interface {

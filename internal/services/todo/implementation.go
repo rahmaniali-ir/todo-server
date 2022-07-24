@@ -2,8 +2,8 @@ package todo
 
 import (
 	"github.com/google/uuid"
-	model "github.com/rahmaniali-ir/todo-server/models/todo"
-	service "github.com/rahmaniali-ir/todo-server/models/todo"
+	model "github.com/rahmaniali-ir/todo-server/internal/models/todo"
+	service "github.com/rahmaniali-ir/todo-server/internal/models/todo"
 )
 
 type iTodo struct {

@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/google/uuid"
-	userModel "github.com/rahmaniali-ir/todo-server/models/user"
+	userModel "github.com/rahmaniali-ir/todo-server/internal/models/user"
 )
 
 type iUser struct {

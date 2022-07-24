@@ -6,8 +6,8 @@ import (
 	"errors"
 
 	internalHttp "github.com/rahmaniali-ir/todo-server/internal/http"
-	model "github.com/rahmaniali-ir/todo-server/models/todo"
-	service "github.com/rahmaniali-ir/todo-server/services/todo"
+	model "github.com/rahmaniali-ir/todo-server/internal/models/todo"
+	service "github.com/rahmaniali-ir/todo-server/internal/services/todo"
 )
 
 type handler struct {

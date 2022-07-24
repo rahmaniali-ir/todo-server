@@ -1,7 +1,7 @@
 package todo
 
 import (
-	model "github.com/rahmaniali-ir/todo-server/models/todo"
+	model "github.com/rahmaniali-ir/todo-server/internal/models/todo"
 )
 
 type ITodo interface {

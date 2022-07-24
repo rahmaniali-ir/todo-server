@@ -3,9 +3,9 @@ package routes
 import (
 	"net/http"
 
-	"github.com/rahmaniali-ir/todo-server/handlers/todo"
+	"github.com/rahmaniali-ir/todo-server/internal/handlers/todo"
 	internalHttp "github.com/rahmaniali-ir/todo-server/internal/http"
-	"github.com/rahmaniali-ir/todo-server/router"
+	"github.com/rahmaniali-ir/todo-server/internal/router"
 )
 
 func TodoRoutes(todoHandler todo.IHandler) []router.Route {
