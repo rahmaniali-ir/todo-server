@@ -34,7 +34,7 @@ func Handle(handler handlerFunc) func(http.ResponseWriter, *http.Request) {
 		if err != nil {
 			res = GenericResponse{
 				Success: false,
-				Body: err.Error(),
+				Message: err.Error(),
 			}
 			res.RespondJSON(w, http.StatusBadRequest)
 
