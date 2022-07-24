@@ -49,6 +49,7 @@ func (s *session) GetByToken(token string) (*TempUserSession, error) {
 		Uid: dbUser.Uid,
 		Name: dbUser.Name,
 		Email: dbUser.Email,
+		Token: token,
 	}
 
 	return tempUserSession, nil
@@ -63,4 +64,8 @@ func (s *session) SetSession(uid string) (string, error) {
 	}
 
 	return token, nil
+}
+
+func (s *session) UnsetSession(token string) error {
+	return s.db.Delete([]byte("token#" + token), nil)
 }

@@ -28,5 +28,11 @@ func UserRoutes(userHandler user.IHandler) []router.Route {
 			Method: http.MethodPost,
 			Handler: internalHttp.Handle(userHandler.SignIn),
 		},
+		{
+			Name: "signOut",
+			Path: "/sign-out",
+			Method: http.MethodDelete,
+			Handler: internalHttp.Handle(userHandler.SignOut),
+		},
 	}
 }

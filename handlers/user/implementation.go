@@ -77,3 +77,8 @@ func (h *handler) SignIn(req *http.GenericRequest) (interface{}, error) {
 
 	return userWithToken, nil
 }
+
+func (h *handler) SignOut(req *http.GenericRequest) (interface{}, error) {
+	err := session.Default.UnsetSession(req.Session.Token)
+	return nil, err
+}
