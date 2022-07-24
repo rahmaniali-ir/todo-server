@@ -58,3 +58,13 @@ func (t *iTodo) GetUserTodos(userUid string) ([]Todo, error) {
 
 	return todos, nil
 }
+
+func (t *iTodo) AddTodo(todo *Todo) error {
+	var todoBytes bytes.Buffer
+	err := gob.NewEncoder(&todoBytes).Encode(todo)
+	if err != nil {
+		return err
+	}
+
+	return t.db.Put([]byte("todo#" + todo.Uid), todoBytes.Bytes(), nil)
+}

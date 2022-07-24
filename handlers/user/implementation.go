@@ -22,9 +22,9 @@ func NewHandler(service userService.IUser) *handler {
 	}
 }
 
-func (h *handler) Post(r *http.GenericRequest) (interface{}, error) {
+func (h *handler) Post(req *http.GenericRequest) (interface{}, error) {
 	user := userModel.User{}
-	reader := bytes.NewReader(r.Body)
+	reader := bytes.NewReader(req.Body)
 	err := json.NewDecoder(reader).Decode(&user)
 	if err != nil {
 		return nil, err

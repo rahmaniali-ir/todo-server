@@ -16,5 +16,11 @@ func TodoRoutes(todoHandler todo.IHandler) []router.Route {
 			Method: http.MethodGet,
 			Handler: internalHttp.Handle(todoHandler.GetAll),
 		},
+		{
+			Name: "addTodo",
+			Path: "/todo",
+			Method: http.MethodPost,
+			Handler: internalHttp.Handle(todoHandler.Add),
+		},
 	}
 }

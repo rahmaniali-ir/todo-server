@@ -8,7 +8,7 @@ const (
 )
 
 type Todo struct {
-	Id string `json:"id"`
+	Uid string `json:"id"`
   Title string `json:"title"`
   Body string `json:"body"`
   Status Status `json:"status"`
@@ -18,4 +18,5 @@ type Todo struct {
 type ITodo interface {
 	GetAll() ([]Todo, error)
 	GetUserTodos(userUid string) ([]Todo, error)
+	AddTodo(todo *Todo) error
 }
