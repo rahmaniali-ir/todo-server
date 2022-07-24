@@ -20,7 +20,16 @@ func NewService(todoModel service.ITodo) iTodo {
 	return t
 }
 
-func (t *iTodo) GetUserTodos(userUid string) ([]model.Todo, error) {
+func (t *iTodo) GetTodo(uid string) (*model.Todo, error) {
+	todo, err := t.model.GetTodo(uid)
+	if err != nil {
+		return nil, err
+	}
+
+	return todo, nil
+}
+
+func (t *iTodo) GetUserTodos(userUid string) (*[]model.Todo, error) {
 	return t.model.GetUserTodos(userUid)
 }
 

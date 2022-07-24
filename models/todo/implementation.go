@@ -3,6 +3,7 @@ package todo
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -21,7 +22,7 @@ func NewModel(db *leveldb.DB) (ITodo, error) {
 	return model, nil
 }
 
-func (t *iTodo) GetAll() ([]Todo, error) {
+func (t *iTodo) GetAll() (*[]Todo, error) {
 	iter := t.db.NewIterator(util.BytesPrefix([]byte("todo#")), nil)
 
 	todos := []Todo{}
@@ -30,16 +31,32 @@ func (t *iTodo) GetAll() ([]Todo, error) {
 		reader := bytes.NewReader(iter.Value())
 		err := gob.NewDecoder(reader).Decode(&todo)
 		if err != nil {
-			return []Todo{}, err
+			return nil, err
 		}
 
 		todos = append(todos, todo)
 	}
 
-	return todos, nil
+	return &todos, nil
 }
 
-func (t *iTodo) GetUserTodos(userUid string) ([]Todo, error) {
+func (t *iTodo) GetTodo(uid string) (*Todo, error) {
+	todoBytes, err := t.db.Get([]byte("todo#" + uid), nil)
+	if err != nil {
+		return nil, errors.New("Data not found!")
+	}
+
+	todo := &Todo{}
+	reader := bytes.NewReader(todoBytes)
+	err = gob.NewDecoder(reader).Decode(todo)
+	if err != nil {
+		return nil, err
+	}
+
+	return todo, nil
+}
+
+func (t *iTodo) GetUserTodos(userUid string) (*[]Todo, error) {
 	iter := t.db.NewIterator(util.BytesPrefix([]byte("todo#")), nil)
 
 	todos := []Todo{}
@@ -48,7 +65,7 @@ func (t *iTodo) GetUserTodos(userUid string) ([]Todo, error) {
 		reader := bytes.NewReader(iter.Value())
 		err := gob.NewDecoder(reader).Decode(&todo)
 		if err != nil {
-			return []Todo{}, err
+			return nil, err
 		}
 
 		if todo.User_uid == userUid {
@@ -56,7 +73,7 @@ func (t *iTodo) GetUserTodos(userUid string) ([]Todo, error) {
 		}
 	}
 
-	return todos, nil
+	return &todos, nil
 }
 
 func (t *iTodo) AddTodo(todo *Todo) error {
@@ -70,5 +87,10 @@ func (t *iTodo) AddTodo(todo *Todo) error {
 }
 
 func (t *iTodo) DeleteTodo(uid string) error {
-	return t.db.Delete([]byte("todo#" + uid), nil)
+	err := t.db.Delete([]byte("todo#" + uid), nil)
+	if err != nil {
+		return errors.New("Data not found!")
+	}
+
+	return nil
 }

@@ -3,6 +3,7 @@ package todo
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 
 	internalHttp "github.com/rahmaniali-ir/todo-server/internal/http"
 	model "github.com/rahmaniali-ir/todo-server/models/todo"
@@ -24,10 +25,23 @@ func NewHandler(service service.ITodo) IHandler {
 }
 
 func (h *handler) GetAll(req *internalHttp.GenericRequest) (interface{}, error) {
-	return h.service.GetUserTodos(req.Session.Uid)
+	if req.Session == nil {
+		return nil, errors.New("Unauthorized request!")
+	}
+
+	todos, err := h.service.GetUserTodos(req.Session.Uid)
+	if err != nil {
+		return nil, err
+	}
+
+	return todos, nil
 }
 
 func (h *handler) Add(req *internalHttp.GenericRequest) (interface{}, error) {
+	if req.Session == nil {
+		return nil, errors.New("Unauthorized request!")
+	}
+
 	todo := model.Todo{}
 	reader := bytes.NewReader(req.Body)
 	err := json.NewDecoder(reader).Decode(&todo)
@@ -39,5 +53,23 @@ func (h *handler) Add(req *internalHttp.GenericRequest) (interface{}, error) {
 }
 
 func (h *handler) Delete(req *internalHttp.GenericRequest) (interface{}, error) {
-	return nil, h.service.DeleteTodo(req.QueryParams["uid"][0])
+	if req.Session == nil {
+		return nil, errors.New("Unauthorized request!")
+	}
+
+	if !req.QueryParams.Has("uid") {
+		return nil, errors.New("Incomplete request!")
+	}
+
+	uid := req.QueryParams["uid"][0]
+	todo, err := h.service.GetTodo(uid)
+	if err != nil {
+		return nil, err
+	}
+
+	if todo.User_uid != req.Session.Uid {
+		return nil, errors.New("Unauthorized request!")
+	}
+
+	return nil, h.service.DeleteTodo(uid)
 }

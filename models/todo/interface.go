@@ -16,8 +16,9 @@ type Todo struct {
 }
 
 type ITodo interface {
-	GetAll() ([]Todo, error)
-	GetUserTodos(userUid string) ([]Todo, error)
+	GetAll() (*[]Todo, error)
+	GetTodo(uid string) (*Todo, error)
+	GetUserTodos(userUid string) (*[]Todo, error)
 	AddTodo(todo *Todo) error
 	DeleteTodo(uid string) error
 }
