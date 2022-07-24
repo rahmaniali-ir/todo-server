@@ -11,10 +11,16 @@ import (
 func UserRoutes(userHandler user.IHandler) []router.Route {
 	return []router.Route{
 		{
+			Name: "getProfile",
+			Path: "/profile",
+			Method: http.MethodGet,
+			Handler: internalHttp.Handle(userHandler.GetProfile),
+		},
+		{
 			Name: "signUp",
 			Path: "/sign-up",
 			Method: http.MethodPost,
-			Handler: internalHttp.Handle(userHandler.Post),
+			Handler: internalHttp.Handle(userHandler.SignUp),
 		},
 	}
 }

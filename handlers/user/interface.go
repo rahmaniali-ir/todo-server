@@ -3,5 +3,6 @@ package user
 import "github.com/rahmaniali-ir/todo-server/internal/http"
 
 type IHandler interface {
-	Post(*http.GenericRequest) (interface{}, error)
+	GetProfile(*http.GenericRequest) (interface{}, error)
+	SignUp(*http.GenericRequest) (interface{}, error)
 }

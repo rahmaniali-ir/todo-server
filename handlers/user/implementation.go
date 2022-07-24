@@ -22,7 +22,11 @@ func NewHandler(service userService.IUser) *handler {
 	}
 }
 
-func (h *handler) Post(req *http.GenericRequest) (interface{}, error) {
+func (h *handler) GetProfile(req *http.GenericRequest) (interface{}, error) {
+	return h.service.Get(req.Session.Uid)
+}
+
+func (h *handler) SignUp(req *http.GenericRequest) (interface{}, error) {
 	user := userModel.User{}
 	reader := bytes.NewReader(req.Body)
 	err := json.NewDecoder(reader).Decode(&user)
