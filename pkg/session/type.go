@@ -2,38 +2,51 @@ package session
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
+	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/rahmaniali-ir/todo-server/internal/models/user"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
 type session struct {
-	db *leveldb.DB
+	userDB *leveldb.DB
+	db *redis.Client
+	ctx *context.Context
 }
 
 var _ ISession = &session{}
 
-func New(db *leveldb.DB) ISession {
+func New(db *redis.Client, ctx *context.Context, userDb *leveldb.DB) ISession {
 	return &session{
 		db: db,
+		ctx: ctx,
+		userDB: userDb,
 	}
 }
 
-func Init(db *leveldb.DB) {
-	sessionManager := New(db)
+func Init(userDb *leveldb.DB) {
+	ctx := context.Background()
+	redisDB := redis.NewClient(&redis.Options{
+		Addr:	  "localhost:6379",
+		Password: "", // no password set
+		DB:		  0,  // use default DB
+	})
+
+	sessionManager := New(redisDB, &ctx, userDb)
 	Default = sessionManager
 }
 
 func (s *session) GetByToken(token string) (*TempUserSession, error) {
-	uidBytes, err := s.db.Get([]byte("token#" + token), nil)
+	uid, err := s.db.Get(*s.ctx, "token#" + token).Result()
 	if err != nil {
 		return nil, err
 	}
 
-	uid := string(uidBytes)
-	userBytes, err := s.db.Get([]byte("user#" + uid), nil)
+	userBytes, err := s.userDB.Get([]byte("user#" + uid), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -57,9 +70,9 @@ func (s *session) GetByToken(token string) (*TempUserSession, error) {
 
 func (s *session) SetSession(uid string) (string, error) {
 	token := uuid.NewString()
-	err := s.db.Put([]byte("token#" + token), []byte(uid), nil)
+	result := s.db.Set(*s.ctx, "token#" + token, []byte(uid), 24 * 60 * time.Minute)
 
-	if err != nil {
+	if result.Err() != nil {
 		return "", nil
 	}
 
@@ -67,5 +80,5 @@ func (s *session) SetSession(uid string) (string, error) {
 }
 
 func (s *session) UnsetSession(token string) error {
-	return s.db.Delete([]byte("token#" + token), nil)
+	return s.db.Del(*s.ctx, "token#" + token).Err()
 }
