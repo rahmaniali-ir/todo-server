@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	todoHandler "github.com/rahmaniali-ir/todo-server/internal/handlers/todo"
 	userHandler "github.com/rahmaniali-ir/todo-server/internal/handlers/user"
 	todoModel "github.com/rahmaniali-ir/todo-server/internal/models/todo"
@@ -17,21 +18,30 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
-const (
-	dbPath = "./db"
-	port = 8081
-)
+var EnvMap map[string]string
+var defaultEnv = map[string]string{
+	"SERVER_PORT": "8081",
+	"DB_PATH": "./db",
+}
 
 type app struct {
 	router *mux.Router
 }
 
 func New() (*http.Server, error) {
+	var err error
+
+	EnvMap, err = godotenv.Read(".env")
+	if err != nil {
+		EnvMap = defaultEnv
+	}
+
 	allRoutes := []router.Route{}
 
+	dbPath := EnvMap["DB_PATH"]
 	db, err := leveldb.OpenFile(dbPath, nil)
 	if err != nil {
-		panic("Could not open database!")
+		panic(err)
 	}
 
 	// user routes
@@ -72,8 +82,10 @@ func (a *app) createResources(rs ...router.Route) error {
 }
 
 func (a *app) server() *http.Server {
+	port := EnvMap["SERVER_PORT"]
+
 	server := &http.Server{
-		Addr: fmt.Sprintf(":%d", port),
+		Addr: fmt.Sprintf(":%s", port),
 		Handler: a.router,
 	}
 	
